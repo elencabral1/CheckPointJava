@@ -1,13 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- */
-
 package br.uam.conexaotcp;
-
-/**
- *
- * @author MSWagner
- */
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +13,7 @@ public class ConexaoTCP {
         int bytesLidos = in.read(infoBytes);
 
         if (bytesLidos > 0) {
-            return new String(infoBytes);
+            return new String(infoBytes, 0, bytesLidos);
         } else {
             return "";
         }
