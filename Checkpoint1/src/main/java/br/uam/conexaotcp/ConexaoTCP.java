@@ -8,19 +8,21 @@ import java.net.Socket;
 public class ConexaoTCP {
 
     public static String receber(Socket socket) throws IOException {
-        InputStream in = socket.getInputStream();
-        byte infoBytes[] = new byte[100];
-        int bytesLidos = in.read(infoBytes);
-
-        if (bytesLidos > 0) {
-            return new String(infoBytes, 0, bytesLidos);
-        } else {
-            return "";
+        try (InputStream in = socket.getInputStream()) {
+            byte[] buffer = new byte[1024]; // Aumentando o tamanho do buffer para evitar truncamento de dados
+            int bytesRead = in.read(buffer);
+            if (bytesRead > 0) {
+                return new String(buffer, 0, bytesRead); // Lendo apenas os bytes lidos
+            } else {
+                return ""; // Retornando uma string vazia se nenhum byte for lido
+            }
         }
     }
 
     public static void enviar(Socket socket, String textoRequisicao) throws IOException {
-        OutputStream out = socket.getOutputStream();
-        out.write(textoRequisicao.getBytes());
+        try (OutputStream out = socket.getOutputStream()) {
+            out.write(textoRequisicao.getBytes());
+            out.flush();
+        }
     }
 }

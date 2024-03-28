@@ -1,33 +1,37 @@
 package br.uam.conexaotcp;
-import java.io.*;
-import java.net.*;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.Socket;
 
 public class Cliente {
 
-    private static final int PORTA = 1521;
+    private static final int PORTA = 12346;
 
-    public static void main(String[] args) throws IOException {
-        Socket socket = new Socket("localhost", PORTA);
+    public static void main(String[] args) {
+        try (Socket socket = new Socket("localhost", PORTA);
+             InputStream entrada = socket.getInputStream();
+             OutputStream saida = socket.getOutputStream();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+             InputStreamReader inputStreamReader = new InputStreamReader(entrada);
+             BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
 
-        InputStream entrada = socket.getInputStream();
-        OutputStream saida = socket.getOutputStream();
+            System.out.println("Digite o ID do produto: ");
+            int idProduto = Integer.parseInt(reader.readLine());
 
-        System.out.println("Digite o ID do produto: ");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        int idProduto = Integer.parseInt(reader.readLine());
+            saida.write(String.valueOf(idProduto).getBytes());
+            saida.flush();
 
-        saida.write(String.valueOf(idProduto).getBytes());
-        saida.flush();
+            String dadosProduto = bufferedReader.readLine();
 
-        byte[] bytes = new byte[1024];
-        int bytesLidos = entrada.read(bytes);
-        String dadosProduto = new String(bytes, 0, bytesLidos);
+            System.out.println("Informações do produto: ");
+            System.out.println(dadosProduto);
 
-        System.out.println("Informações do produto: ");
-        System.out.println(dadosProduto);
-
-        entrada.close();
-        saida.close();
-        socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

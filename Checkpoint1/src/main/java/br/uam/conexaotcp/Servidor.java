@@ -1,31 +1,68 @@
 package br.uam.conexaotcp;
-import java.io.*;
-import java.net.*;
-import java.util.List;
 
-import javax.persistence.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.persistence.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Servidor {
+    private static final Logger logger = LoggerFactory.getLogger(Servidor.class);
+    private static final int PORTA = 12346;
 
-    private static final int PORTA = 12345;
-
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("CLIENTE_ORACLE");
-
-        EntityManager em = emf.createEntityManager();
-
         ServerSocket serverSocket = null;
+
         try {
             serverSocket = new ServerSocket(PORTA);
-            System.out.println("Servidor iniciado na porta " + PORTA);
+            logger.info("Servidor iniciado na porta {}", PORTA);
 
             while (true) {
                 Socket socket = serverSocket.accept();
+                logger.info("Nova conexão recebida de {}", socket.getInetAddress());
 
-                InputStream entrada = socket.getInputStream();
-                OutputStream saida = socket.getOutputStream();
+                new Thread(new ClientHandler(socket, emf)).start();
+            }
+        } catch (IOException e) {
+            logger.error("Erro ao iniciar servidor", e);
+        } finally {
+            if (serverSocket != null && !serverSocket.isClosed()) {
+                try {
+                    serverSocket.close();
+                    logger.info("Servidor encerrado");
+                } catch (IOException e) {
+                    logger.error("Erro ao fechar servidor", e);
+                }
+            }
+        }
+    }
+
+    static class ClientHandler implements Runnable {
+        private final Socket socket;
+        private final EntityManagerFactory emf;
+
+        public ClientHandler(Socket socket, EntityManagerFactory emf) {
+            this.socket = socket;
+            this.emf = emf;
+        }
+
+        @Override
+        public void run() {
+            try (InputStream entrada = socket.getInputStream();
+                 OutputStream saida = socket.getOutputStream()) {
+
+                EntityManager em = emf.createEntityManager();
 
                 int idProduto = entrada.read();
+                logger.debug("ID do produto recebido: {}", idProduto);
 
                 Query query = em.createQuery("SELECT p FROM Produto p WHERE p.id = :id");
                 query.setParameter("id", idProduto);
@@ -34,27 +71,17 @@ public class Servidor {
                 if (!produtos.isEmpty()) {
                     Produto produto = produtos.get(0);
                     String dadosProduto = produto.toString();
-                    saida.write(dadosProduto.getBytes());
-                    saida.flush();
+                    logger.debug("Produto encontrado: {}", dadosProduto);
+                    ConexaoTCP.enviar(socket, dadosProduto);
                 } else {
                     String mensagem = "Produto não encontrado";
-                    saida.write(mensagem.getBytes());
-                    saida.flush();
+                    logger.debug(mensagem);
+                    ConexaoTCP.enviar(socket, mensagem);
                 }
 
-                entrada.close();
-                saida.close();
-                socket.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (serverSocket != null) {
-                try {
-                    serverSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                em.close();
+            } catch (IOException e) {
+                logger.error("Erro ao processar conexão", e);
             }
         }
     }
