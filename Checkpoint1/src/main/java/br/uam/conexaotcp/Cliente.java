@@ -9,27 +9,24 @@ import java.net.Socket;
 
 public class Cliente {
 
-    private static final int PORTA = 12346;
+    private static final int PORTA = 12345;
 
     public static void main(String[] args) {
         try (Socket socket = new Socket("localhost", PORTA);
-             InputStream entrada = socket.getInputStream();
              OutputStream saida = socket.getOutputStream();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+             InputStream entrada = socket.getInputStream();
              InputStreamReader inputStreamReader = new InputStreamReader(entrada);
              BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
 
             System.out.println("Digite o ID do produto: ");
-            int idProduto = Integer.parseInt(reader.readLine());
-
-            saida.write(String.valueOf(idProduto).getBytes());
+            String idProdutoStr = new BufferedReader(new InputStreamReader(System.in)).readLine();
+            saida.write((idProdutoStr + "\n").getBytes());
             saida.flush();
 
-            String dadosProduto = bufferedReader.readLine();
-
-            System.out.println("Informações do produto: ");
-            System.out.println(dadosProduto);
-
+            String linha;
+            while ((linha = bufferedReader.readLine()) != null) {
+                System.out.println(linha); 
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

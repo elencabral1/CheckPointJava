@@ -6,71 +6,34 @@ import javax.persistence.*;
 @Table(name = "TDS_TB_PRODUTOCS")
 public class Produto {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY) // Verificar a estratégia de geração de chave primária
-	private int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-	@Column(name = "nome") // Mapeamento para a coluna "nome" na tabela
-	private String nome;
+    @Column(name = "nome")
+    private String nome;
 
-	@Column(name = "preco") // Mapeamento para a coluna "preco" na tabela
-	private double preco;
+    @Column(name = "preco")
+    private double preco;
 
-	@Column(name = "validade") // Mapeamento para a coluna "validade" na tabela
-	private String validade;
+    @Column(name = "validade")
+    private String validade;
 
-	@Column(name = "tamanho") // Mapeamento para a coluna "tamanho" na tabela
-	private int tamanho;
+    @Column(name = "tamanho")
+    private int tamanho;
 
-	@Column(name = "descricao") // Mapeamento para a coluna "descricao" na tabela
-	private String descricao;
+    @Column(name = "descricao")
+    private String descricao;
 
-	// Getters e Setters
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getNome() {
-		return nome;
-	}
-
-	public void setNome(String nome) {
-		this.nome = nome;
-	}
-
-	public double getPreco() {
-		return preco;
-	}
-
-	public void setPreco(double preco) {
-		this.preco = preco;
-	}
-
-	public String getValidade() {
-		return validade;
-	}
-
-	public void setValidade(String validade) {
-		this.validade = validade;
-	}
-
-	public int getTamanho() {
-		return tamanho;
-	}
-
-	public void setTamanho(int tamanho) {
-		this.tamanho = tamanho;
-	}
-
-	public String getDescricao() {
-		return descricao;
-	}
-
-	public void setDescricao(String descricao) {
-		this.descricao = descricao;
-	}
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ID: ").append(id).append("\n");
+        sb.append("Nome: ").append(nome).append("\n");
+        sb.append("Preço: R$ ").append(preco).append("\n");
+        sb.append("Validade: ").append(validade).append("\n");
+        sb.append("Tamanho: ").append(tamanho).append(" ml\n");
+        sb.append("Descrição: ").append(descricao).append("\n");
+        return sb.toString();
+    }
 }

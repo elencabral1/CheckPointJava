@@ -1,7 +1,9 @@
 package br.uam.conexaotcp;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,8 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Servidor {
+
     private static final Logger logger = LoggerFactory.getLogger(Servidor.class);
-    private static final int PORTA = 12346;
+    private static final int PORTA = 12345;
 
     public static void main(String[] args) {
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("CLIENTE_ORACLE");
@@ -57,16 +60,20 @@ public class Servidor {
         @Override
         public void run() {
             try (InputStream entrada = socket.getInputStream();
-                 OutputStream saida = socket.getOutputStream()) {
+                 OutputStream saida = socket.getOutputStream();
+                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(entrada))) {
 
                 EntityManager em = emf.createEntityManager();
 
-                int idProduto = entrada.read();
+                String idProdutoStr = bufferedReader.readLine();
+                int idProduto = Integer.parseInt(idProdutoStr.trim()); 
                 logger.debug("ID do produto recebido: {}", idProduto);
 
                 Query query = em.createQuery("SELECT p FROM Produto p WHERE p.id = :id");
                 query.setParameter("id", idProduto);
                 List<Produto> produtos = query.getResultList();
+
+                logger.debug("Número de produtos encontrados: {}", produtos.size());
 
                 if (!produtos.isEmpty()) {
                     Produto produto = produtos.get(0);
@@ -75,7 +82,6 @@ public class Servidor {
                     ConexaoTCP.enviar(socket, dadosProduto);
                 } else {
                     String mensagem = "Produto não encontrado";
-                    logger.debug(mensagem);
                     ConexaoTCP.enviar(socket, mensagem);
                 }
 
@@ -86,3 +92,4 @@ public class Servidor {
         }
     }
 }
+
